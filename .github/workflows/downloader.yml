@@ -1,41 +1,36 @@
-name: TikTok Link & Metadata Extractor
+name: TikTok Downloader (4 Types)
 
 on:
   workflow_dispatch:
     inputs:
       url_tiktok:
-        description: 'URL Video TikTok'
+        description: "URL Video TikTok"
         required: true
         type: string
 
 jobs:
-  extract:
+  extract-links:
     runs-on: ubuntu-latest
     steps:
       - name: Install yt-dlp
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y python3-pip
-          pip3 install --upgrade yt-dlp
+          pip3 install --quiet --upgrade yt-dlp
 
-      - name: Ambil Metadata & Link
+      - name: Extract All 4 Links
         run: |
-          echo "� Metadata Video:"
-          echo "=================="
-          yt-dlp --print "Judul: %(title)s" \
-                 --print "Author: %(uploader)s" \
-                 --print "Durasi: %(duration)s detik" \
-                 --print "Tanggal: %(upload_date)s" \
-                 --print "Views: %(view_count)s" \
-                 --print "Likes: %(like_count)s" \
-                 "${{ github.event.inputs.url_tiktok }}"
-          
+          echo "=== [1] DOWNLOAD DENGAN WATERMARK ==="
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}" || echo "Tidak ditemukan"
+
           echo ""
-          echo "🔗 Semua Format:"
-          echo "================"
-          yt-dlp --list-formats "${{ github.event.inputs.url_tiktok }}"
-          
+          echo "=== [2] DOWNLOAD TANPA WATERMARK ==="
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --no-playlist --get-url "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}"
+
           echo ""
-          echo "⬇️ Link Download Terbaik (MP4):"
-          echo "=============================="
-          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}"
+          echo "=== [3] SUARA ASLI (MUSIK TIKTOK) ==="
+          yt-dlp --print "%(music_info.play_url)s" "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ada musik asli"
+
+          echo ""
+          echo "=== [4] SUARA KONTEN (AUDIO VIDEO) ==="
+          yt-dlp -f ba -g "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ditemukan"
