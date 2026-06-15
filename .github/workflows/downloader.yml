@@ -39,4 +39,3 @@ jobs:
           echo "⬇️ Link Download Terbaik (MP4):"
           echo "=============================="
           yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}"
-
