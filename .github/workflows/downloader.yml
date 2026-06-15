@@ -1,4 +1,4 @@
-name: TikTok Video Downloader (Pipa)
+name: TikTok Link & Metadata Extractor
 
 on:
   workflow_dispatch:
@@ -7,17 +7,9 @@ on:
         description: 'URL Video TikTok'
         required: true
         type: string
-      callback_url:
-        description: 'Callback URL untuk menerima streaming'
-        required: true
-        type: string
-      session_id:
-        description: 'Session ID pengguna'
-        required: true
-        type: string
 
 jobs:
-  download-and-stream:
+  extract:
     runs-on: ubuntu-latest
     steps:
       - name: Install yt-dlp
@@ -26,10 +18,25 @@ jobs:
           sudo apt-get install -y python3-pip
           pip3 install --upgrade yt-dlp
 
-      - name: Download dan Stream Video
+      - name: Ambil Metadata & Link
         run: |
-          yt-dlp -o - "${{ github.event.inputs.url_tiktok }}" | curl -X POST \
-            -H "Content-Type: application/octet-stream" \
-            -H "X-Session-ID: ${{ github.event.inputs.session_id }}" \
-            --data-binary @- \
-            "${{ github.event.inputs.callback_url }}"
+          echo "� Metadata Video:"
+          echo "=================="
+          yt-dlp --print "Judul: %(title)s" \
+                 --print "Author: %(uploader)s" \
+                 --print "Durasi: %(duration)s detik" \
+                 --print "Tanggal: %(upload_date)s" \
+                 --print "Views: %(view_count)s" \
+                 --print "Likes: %(like_count)s" \
+                 "${{ github.event.inputs.url_tiktok }}"
+          
+          echo ""
+          echo "🔗 Semua Format:"
+          echo "================"
+          yt-dlp --list-formats "${{ github.event.inputs.url_tiktok }}"
+          
+          echo ""
+          echo "⬇️ Link Download Terbaik (MP4):"
+          echo "=============================="
+          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}"
+
