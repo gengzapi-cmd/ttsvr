@@ -1,0 +1,35 @@
+name: TikTok Video Downloader (Pipa)
+
+on:
+  workflow_dispatch:
+    inputs:
+      url_tiktok:
+        description: 'URL Video TikTok'
+        required: true
+        type: string
+      callback_url:
+        description: 'Callback URL untuk menerima streaming'
+        required: true
+        type: string
+      session_id:
+        description: 'Session ID pengguna'
+        required: true
+        type: string
+
+jobs:
+  download-and-stream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install yt-dlp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install --upgrade yt-dlp
+
+      - name: Download dan Stream Video
+        run: |
+          yt-dlp -o - "${{ github.event.inputs.url_tiktok }}" | curl -X POST \
+            -H "Content-Type: application/octet-stream" \
+            -H "X-Session-ID: ${{ github.event.inputs.session_id }}" \
+            --data-binary @- \
+            "${{ github.event.inputs.callback_url }}"
