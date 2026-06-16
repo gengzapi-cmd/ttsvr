@@ -14,23 +14,21 @@ jobs:
     steps:
       - name: Install yt-dlp
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y python3-pip
-          pip3 install --quiet --upgrade yt-dlp
+          wget -qO yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+          chmod a+rx yt-dlp
 
-      - name: Extract All 4 Links
+      - name: Extract All Data
         run: |
-          echo "=== [1] DOWNLOAD DENGAN WATERMARK ==="
-          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}" || echo "Tidak ditemukan"
+          echo "=== METADATA & NO WATERMARK ==="
+          ./yt-dlp --print "%(title)s|%(uploader)s|%(thumbnail)s|%(url)s" --no-playlist "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Unknown|Unknown|Unknown|"
 
-          echo ""
-          echo "=== [2] DOWNLOAD TANPA WATERMARK ==="
-          yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --no-playlist --get-url "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}"
+          echo "=== [1] DOWNLOAD DENGAN WATERMARK ==="
+          ./yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" -g "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ditemukan"
 
           echo ""
           echo "=== [3] SUARA ASLI (MUSIK TIKTOK) ==="
-          yt-dlp --print "%(music_info.play_url)s" "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ada musik asli"
+          ./yt-dlp --print "%(music_info.play_url)s" "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ada musik asli"
 
           echo ""
           echo "=== [4] SUARA KONTEN (AUDIO VIDEO) ==="
-          yt-dlp -f ba -g "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ditemukan"
+          ./yt-dlp -f ba -g "${{ github.event.inputs.url_tiktok }}" 2>/dev/null || echo "Tidak ditemukan"
